@@ -138,15 +138,10 @@ const GSCFullWallet = () => {
     try {
       const activeWallet = getActiveWallet();
       console.log("=== LOADING TRANSACTION HISTORY ===");
-      console.log("Selected wallet name:", selectedWallet);
-      console.log("Active wallet:", activeWallet);
-      console.log("All wallets:", wallets);
       
-      if (activeWallet && activeWallet.address) {
-        console.log("Loading history for address:", activeWallet.address);
-        const history = gscBlockchainService.getTransactionHistory(activeWallet.address);
-        console.log("Transaction history loaded:", history?.length || 0, "transactions");
-        
+      if (activeWallet) {
+        const transactions = gscBlockchainService.getTransactionHistory(activeWallet.address);
+        setTransactionHistory(transactions);
         // Transform raw transactions into the expected format
         const transformedHistory = Array.isArray(history) ? history.map(tx => {
           if (!tx || !tx.tx_id) {
@@ -177,6 +172,18 @@ const GSCFullWallet = () => {
       console.error("Error loading transaction history:", error);
       setTransactionHistory([]);
     }
+  };
+
+  const reloadWalletAndBlockchain = () => {
+    console.log("=== RELOADING WALLET AND BLOCKCHAIN ===");
+    loadWallets();
+    loadTransactionHistory();
+    // Automatically refresh blockchain data
+    gscBlockchainService.refreshBlockchainData();
+    toast({
+      title: "Wallet Reloaded",
+      description: "Wallet and blockchain data refreshed successfully",
+    });
   };
 
   const handleCreateWallet = () => {
@@ -535,12 +542,13 @@ const GSCFullWallet = () => {
             
             {/* Reload Button */}
             <Button
-              onClick={() => window.location.reload()}
+              onClick={reloadWalletAndBlockchain}
               variant="outline"
               className="border-blue-500/30 hover:bg-blue-500/10 text-blue-400 w-full sm:w-auto"
               title="Reload Wallet"
             >
-              <RefreshCw className="w-4 h-4" />
+              <RefreshCw className="w-4 h-4 mr-2" />
+              (open after create or import)
             </Button>
             
             <DropdownMenu>
